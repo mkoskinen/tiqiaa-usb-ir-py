@@ -185,7 +185,7 @@ class TiqiaaUsbIr:
     packet = array.array('B')
 
     while True:
-      buf = self.rep.read(100, timeout=None)
+      buf = self.rep.read(100, timeout=100000000)
       if not buf:
         continue
       if len(buf) < Report2Header.size:
