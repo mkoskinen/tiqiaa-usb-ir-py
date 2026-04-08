@@ -23,20 +23,24 @@ capturing anything, your dongle likely lacks a receiver.
 
 ## Setup
 
+On Fedora:
+
 ```bash
-pip install pyusb
+./scripts/setup.sh
 ```
 
-Udev rule for non-root access:
+Or manually:
 
 ```bash
+sudo dnf install libusb1
+pip install pyusb
 sudo tee /etc/udev/rules.d/99-tiqiaa.rules <<< 'SUBSYSTEM=="usb", ATTR{idVendor}=="10c4", ATTR{idProduct}=="8468", MODE="0666"'
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
 
 ## Usage
 
-Send an IR signal:
+Send an IR signal directly:
 
 ```bash
 python3 tiqiaa_usb_ir.py -s ir/cool_on_21.ir
@@ -48,12 +52,31 @@ Receive/capture IR signals (if your dongle has a receiver):
 python3 tiqiaa_usb_ir.py -r
 ```
 
+### Web server
+
+Run the HTTP server on port 8080:
+
+```bash
+python3 scripts/server.py
+```
+
+Then open `http://localhost:8080` for a web UI, or use curl:
+
+```bash
+curl http://localhost:8080/on/21
+curl http://localhost:8080/on/24
+curl http://localhost:8080/off
+```
+
 ## Included IR signals
 
 Pre-built signals for Mitsubishi Heavy Industries AC (remote RLA502A704A):
 
 | File | Description |
 |------|-------------|
-| `ir/cool_on_24.ir` | Cool on, 24°C, fan auto |
+| `ir/cool_on_20.ir` | Cool on, 20°C, fan auto |
 | `ir/cool_on_21.ir` | Cool on, 21°C, fan auto |
+| `ir/cool_on_22.ir` | Cool on, 22°C, fan auto |
+| `ir/cool_on_23.ir` | Cool on, 23°C, fan auto |
+| `ir/cool_on_24.ir` | Cool on, 24°C, fan auto |
 | `ir/off.ir` | Power off |
