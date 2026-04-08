@@ -23,53 +23,33 @@ import usb.util
 logger = logging.getLogger(__name__)
 
 
-class NamedStructMeta(type):
+def _NamedStruct(name, **fields):
+  NT = collections.namedtuple(name, fields.keys())
+  s = struct.Struct(''.join(fields.values()))
 
-  def __new__(mcs, typename, bases, ns):
-    if '__annotations__' not in ns:
-      return type.__new__(mcs, typename, bases, ns)
+  class Cls(NT):
+    _struct = s
+    size = s.size
+    def __new__(cls, *args):
+      return tuple.__new__(cls, args)
+    def pack(self):
+      return self._struct.pack(*self)
+    @classmethod
+    def unpack(cls, buf):
+      return cls._make(cls._struct.unpack(buf))
 
-    annotations = ns['__annotations__']
-    cls = collections.namedtuple(typename + 'NamedTuple', annotations)
-    return type.__new__(mcs, typename, (cls,) + bases, dict(
-      _struct=struct.Struct(''.join(annotations.values())),
-    ))
-
-
-class NamedStruct(metaclass=NamedStructMeta):
-
-  _struct = ...  # struct.Struct
-
-  def pack(self):
-    return self._struct.pack(*self)
-
-  @classmethod
-  def unpack(cls, buf):
-    return cls._make(cls._struct.unpack(buf))
-
-  @classmethod
-  @property
-  def size(self):
-    return self._struct.size
+  Cls.__name__ = name
+  Cls.__qualname__ = name
+  return Cls
 
 
-class Report2Header(NamedStruct):
-  ReportId: 'B'
-  FragmSize: 'B'
-  PacketIdx: 'B'
-  FragmCount: 'B'
-  FragmIdx: 'B'
+Report2Header = _NamedStruct('Report2Header',
+    ReportId='B', FragmSize='B', PacketIdx='B', FragmCount='B', FragmIdx='B')
 
+CmdHeader = _NamedStruct('CmdHeader', CmdId='B', CmdType='c')
 
-class CmdHeader(NamedStruct):
-  CmdId: 'B'
-  CmdType: 'c'
-
-
-class VersionPacket(NamedStruct):
-  VersionChar: 'c'
-  VersionInt: 'B'
-  VersionGuid: '36s'
+VersionPacket = _NamedStruct('VersionPacket',
+    VersionChar='c', VersionInt='B', VersionGuid='36s')
 
 
 MaxUsbFragmSize = 56
