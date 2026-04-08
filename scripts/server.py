@@ -4,7 +4,7 @@
 import os
 import subprocess
 import sys
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer, ThreadingHTTPServer, BaseHTTPRequestHandler
 
 PORT = 8080
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -75,6 +75,6 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    server = HTTPServer(("0.0.0.0", PORT), Handler)
+    server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"Listening on http://0.0.0.0:{PORT}")
     server.serve_forever()
