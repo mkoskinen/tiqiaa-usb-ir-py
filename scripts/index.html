@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mitsubishi AC</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --glow: 59, 130, 246;
+      --bg: #0f1117;
+      --card: #1a1d27;
+      --border: #2a2d3a;
+      --accent: rgb(var(--glow));
+      --accent-glow: rgba(var(--glow), 0.25);
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --off: #ef4444;
+      --off-glow: rgba(239,68,68,0.25);
+    }
+
+    body {
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--bg);
+      background-image: radial-gradient(ellipse 120% 120% at 50% 50%, rgba(var(--glow), 0.07), transparent 70%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      padding: 1.5rem;
+      transition: background-color 0.8s ease, background-image 0.8s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* animated background glow blob */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 90% 60% at 50% -10%, rgba(var(--glow), 0.22), transparent 70%);
+      transition: background 0.8s ease;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body.off {
+      --bg: #08090c;
+      --glow: 20, 20, 30;
+    }
+
+    body.temp-20 { --glow: 59, 130, 246; }   /* blue */
+    body.temp-21 { --glow: 34, 170, 200; }   /* cyan */
+    body.temp-22 { --glow: 16, 185, 129; }   /* teal */
+    body.temp-23 { --glow: 245, 120, 30; }   /* orange */
+    body.temp-24 { --glow: 239, 68, 68; }    /* red */
+
+    .card {
+      position: relative;
+      z-index: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 2rem;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+      transition: box-shadow 0.8s ease;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .icon {
+      font-size: 2.5rem;
+      display: block;
+      margin-bottom: 0.5rem;
+      transition: filter 0.5s ease;
+    }
+
+    body.off .icon { filter: grayscale(1) brightness(0.4); }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .subtitle {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgb(var(--glow));
+      animation: pulse 2s infinite;
+      margin-right: 0.4rem;
+      vertical-align: middle;
+      transition: background 0.8s ease;
+    }
+
+    body.off .status-dot { animation: none; background: #333; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0 0 1.5rem;
+    }
+
+    .label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .temp-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.875rem;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: none;
+      font-family: inherit;
+    }
+
+    .btn-temp {
+      flex-direction: column;
+      padding: 0.75rem 0.25rem;
+      background: rgba(var(--glow), 0.08);
+      border-color: rgba(var(--glow), 0.2);
+      color: rgb(var(--glow));
+      font-size: 1rem;
+      gap: 0.15rem;
+      transition: background 0.6s ease, border-color 0.6s ease, color 0.6s ease, box-shadow 0.2s ease, transform 0.15s ease;
+    }
+
+    .btn-temp .deg {
+      font-size: 0.6rem;
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    .btn-temp:hover {
+      background: rgba(var(--glow), 0.22);
+      border-color: rgb(var(--glow));
+      box-shadow: 0 0 20px rgba(var(--glow), 0.3);
+      transform: translateY(-2px);
+    }
+
+    .btn-temp.active {
+      background: rgba(var(--glow), 0.28);
+      border-color: rgb(var(--glow));
+      box-shadow: 0 0 24px rgba(var(--glow), 0.4);
+    }
+
+    .btn-temp:active, .btn-off:active { transform: translateY(0) scale(0.97); }
+
+    .btn-off {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    /* device is ON → Turn Off button = grey */
+    .btn-off {
+      background: rgba(100,116,139,0.12);
+      border-color: rgba(100,116,139,0.3);
+      color: #64748b;
+    }
+
+    .btn-off:hover {
+      background: rgba(100,116,139,0.22);
+      border-color: #64748b;
+      box-shadow: 0 0 16px rgba(100,116,139,0.2);
+      transform: translateY(-1px);
+    }
+
+    /* device is OFF → Turn On button = red */
+    body.off .btn-off {
+      background: rgba(239,68,68,0.1);
+      border-color: rgba(239,68,68,0.35);
+      color: var(--off);
+    }
+
+    body.off .btn-off:hover {
+      background: var(--off-glow);
+      border-color: var(--off);
+      box-shadow: 0 0 20px var(--off-glow);
+      transform: translateY(-1px);
+    }
+
+    .current-temp {
+      text-align: center;
+      font-size: 3rem;
+      font-weight: 700;
+      color: rgb(var(--glow));
+      transition: color 0.8s ease, opacity 0.5s ease;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+
+    body.off .current-temp { opacity: 0.15; color: #555; }
+
+    .current-label {
+      text-align: center;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+  </style>
+</head>
+<body class="temp-20">
+  <div class="card">
+    <div class="header">
+      <span class="icon">❄️</span>
+      <h1>Mitsubishi AC</h1>
+      <p class="subtitle"><span class="status-dot"></span>Climate Control</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="current-temp" id="display">—</div>
+    <p class="current-label" id="display-label">select temperature</p>
+
+    <p class="label">Temperature</p>
+    <div class="temp-grid">
+      <button class="btn btn-temp" data-temp="20" onclick="setTemp(20)">20<span class="deg">°C</span></button>
+      <button class="btn btn-temp" data-temp="21" onclick="setTemp(21)">21<span class="deg">°C</span></button>
+      <button class="btn btn-temp" data-temp="22" onclick="setTemp(22)">22<span class="deg">°C</span></button>
+      <button class="btn btn-temp" data-temp="23" onclick="setTemp(23)">23<span class="deg">°C</span></button>
+      <button class="btn btn-temp" data-temp="24" onclick="setTemp(24)">24<span class="deg">°C</span></button>
+    </div>
+
+    <button class="btn btn-off" id="power-btn" onclick="togglePower()">⏻ Turn Off</button>
+  </div>
+
+  <script>
+    const display = document.getElementById('display');
+    const displayLabel = document.getElementById('display-label');
+    const powerBtn = document.getElementById('power-btn');
+
+    // initialize default state on first visit
+    if (localStorage.getItem('ac-off') === null) {
+      localStorage.setItem('ac-off', '1');
+    }
+
+    function applyState() {
+      const saved = localStorage.getItem('ac-temp');
+      const isOff = localStorage.getItem('ac-off') === '1';
+
+      document.body.className = '';
+      document.querySelectorAll('.btn-temp').forEach(b => b.classList.remove('active'));
+
+      if (isOff || !saved) {
+        document.body.classList.add('off');
+        display.textContent = '—';
+        displayLabel.textContent = 'turned off';
+        powerBtn.textContent = '⏻ Turn On';
+      } else {
+        document.body.classList.add('temp-' + saved);
+        display.textContent = saved + '°';
+        displayLabel.textContent = 'cooling active';
+        powerBtn.textContent = '⏻ Turn Off';
+        const active = document.querySelector('[data-temp="' + saved + '"]');
+        if (active) active.classList.add('active');
+      }
+    }
+
+    function setTemp(t) {
+      localStorage.setItem('ac-temp', t);
+      localStorage.setItem('ac-off', '0');
+      applyState();
+      fetch('/on/' + t).catch(() => {});
+    }
+
+    function togglePower() {
+      const isOff = localStorage.getItem('ac-off') === '1';
+      if (isOff) {
+        const saved = localStorage.getItem('ac-temp') || '22';
+        localStorage.setItem('ac-temp', saved);
+        localStorage.setItem('ac-off', '0');
+        fetch('/on/' + saved).catch(() => {});
+      } else {
+        localStorage.setItem('ac-off', '1');
+        fetch('/off').catch(() => {});
+      }
+      applyState();
+    }
+
+    applyState();
+  </script>
+</body>
+</html>
